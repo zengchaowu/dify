@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  dify-gateway:
+    image: nginx:alpine
+    container_name: dify-gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-gateway/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx-gateway/proxy.conf:/etc/nginx/proxy.conf:ro
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    driver: bridge 
